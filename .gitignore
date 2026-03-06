@@ -3,21 +3,36 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+*.db
+
+# Virtual env
+venv/
+backend/venv/
+
+# Environment variables
+.env
+
+# FastAPI
 *.log
 
-# Virtual Environment
-venv/
-.env/
-
-# Data
+# Uploaded files
 backend/data/
+
+# Node
+node_modules/
+
+# Build files
+dist/
+build/
+
+# Vite
+frontend/node_modules/
+frontend/dist/
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Node
-node_modules/
-
-# Environment variables
-.env
+# IDE
+.vscode/
+.idea/

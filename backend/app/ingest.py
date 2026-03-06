@@ -4,6 +4,7 @@ from sentence_transformers import SentenceTransformer
 import faiss
 import numpy as np
 from app.retrieval import build_bm25
+import os
 
 
 # embedding model
@@ -24,7 +25,17 @@ def ingest_pdf(file_path):
 
     split_docs = splitter.split_documents(documents)
 
-    texts = [doc.page_content for doc in split_docs]
+    chunks = []
+
+    # store text + metadata
+    for doc in split_docs:
+        chunks.append({
+        "text": doc.page_content,
+        "page": doc.metadata["page"] + 1,
+        "document": os.path.basename(file_path)
+        })
+
+    texts = [c["text"] for c in chunks]
 
     # create embeddings
     embeddings = embedding_model.encode(texts)
@@ -39,4 +50,4 @@ def ingest_pdf(file_path):
 
     bm25 = build_bm25(texts)
 
-    return index, texts, bm25
+    return index, chunks, bm25
