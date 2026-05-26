@@ -6,11 +6,6 @@ os.environ["OPENBLAS_NUM_THREADS"] = "1"
 os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
 os.environ["NUMEXPR_NUM_THREADS"] = "1"
 
-import torch
-# Restrict torch computation to a single thread and disable gradients
-torch.set_num_threads(1)
-torch.set_num_interop_threads(1)
-torch.set_grad_enabled(False)
 
 from fastapi import FastAPI, UploadFile, HTTPException
 from fastapi.responses import StreamingResponse

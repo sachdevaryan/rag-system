@@ -5,6 +5,10 @@ _embedding_model = None
 def get_embedding_model():
     global _embedding_model
     if _embedding_model is None:
+        import torch
+        torch.set_num_threads(1)
+        torch.set_num_interop_threads(1)
+        torch.set_grad_enabled(False)
         from sentence_transformers import SentenceTransformer
         _embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
     return _embedding_model

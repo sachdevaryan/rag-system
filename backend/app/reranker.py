@@ -3,6 +3,10 @@ _reranker = None
 def get_reranker():
     global _reranker
     if _reranker is None:
+        import torch
+        torch.set_num_threads(1)
+        torch.set_num_interop_threads(1)
+        torch.set_grad_enabled(False)
         from sentence_transformers import CrossEncoder
         _reranker = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
     return _reranker
