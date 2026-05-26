@@ -2,7 +2,14 @@ from sentence_transformers import CrossEncoder
 
 reranker = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
 
-def rerank(query, docs):
+
+def rerank(query, docs, top_k=5):
+    """
+    Rerank documents using a cross-encoder model.
+    Accepts up to 10 candidates and returns top_k (default 5).
+    """
+    if not docs:
+        return []
 
     pairs = [[query, doc["text"]] for doc in docs]
 
@@ -13,4 +20,4 @@ def rerank(query, docs):
 
     docs = sorted(docs, key=lambda x: x["rerank_score"], reverse=True)
 
-    return docs[:3]
+    return docs[:top_k]
