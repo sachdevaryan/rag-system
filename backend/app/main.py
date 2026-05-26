@@ -1,11 +1,4 @@
 import os
-# Configure CPU thread limits to save memory in multi-core hosting systems (e.g. Render)
-os.environ["OMP_NUM_THREADS"] = "1"
-os.environ["MKL_NUM_THREADS"] = "1"
-os.environ["OPENBLAS_NUM_THREADS"] = "1"
-os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
-os.environ["NUMEXPR_NUM_THREADS"] = "1"
-
 
 from fastapi import FastAPI, UploadFile, HTTPException
 from fastapi.responses import StreamingResponse

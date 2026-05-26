@@ -1,17 +1,40 @@
-from rank_bm25 import BM25Okapi
+import os
+import time
+import requests
 import numpy as np
-_embedding_model = None
+from rank_bm25 import BM25Okapi
 
-def get_embedding_model():
-    global _embedding_model
-    if _embedding_model is None:
-        import torch
-        torch.set_num_threads(1)
-        torch.set_num_interop_threads(1)
-        torch.set_grad_enabled(False)
-        from sentence_transformers import SentenceTransformer
-        _embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
-    return _embedding_model
+# HuggingFace Inference API endpoint for all-MiniLM-L6-v2
+HF_API_URL = "https://api-inference.huggingface.co/pipeline/feature-extraction/sentence-transformers/all-MiniLM-L6-v2"
+HF_TOKEN = os.getenv("HF_TOKEN", "")  # Optional - set in Render env vars for higher rate limits
+
+
+def get_embeddings(texts: list[str]) -> np.ndarray:
+    """
+    Get embeddings from HuggingFace Inference API.
+    Falls back to retry if model is loading (503).
+    No local PyTorch or SentenceTransformer needed.
+    """
+    headers = {}
+    if HF_TOKEN:
+        headers["Authorization"] = f"Bearer {HF_TOKEN}"
+
+    payload = {
+        "inputs": texts,
+        "options": {"wait_for_model": True}
+    }
+
+    for attempt in range(3):
+        response = requests.post(HF_API_URL, headers=headers, json=payload, timeout=60)
+        if response.status_code == 200:
+            return np.array(response.json(), dtype="float32")
+        elif response.status_code == 503:
+            # Model is loading — wait and retry
+            time.sleep(10)
+        else:
+            raise RuntimeError(f"HF API error {response.status_code}: {response.text}")
+
+    raise RuntimeError("HuggingFace Inference API failed after 3 retries.")
 
 
 # -----------------------------
@@ -47,10 +70,10 @@ def bm25_search(query, bm25, chunks, top_k=10):
 
 
 # -----------------------------
-# Vector search
+# Vector search (via HF API)
 # -----------------------------
 def vector_search(query, index, chunks, top_k=10):
-    query_embedding = get_embedding_model().encode([query])
+    query_embedding = get_embeddings([query])
 
     distances, indices = index.search(
         np.array(query_embedding).astype("float32"),
@@ -93,7 +116,6 @@ def reciprocal_rank_fusion(result_lists, k=60):
                 result_map[key] = r
             rrf_scores[key] += 1.0 / (k + r["rank"])
 
-    # Sort by RRF score descending
     sorted_keys = sorted(rrf_scores.keys(), key=lambda x: rrf_scores[x], reverse=True)
 
     fused = []
@@ -112,7 +134,6 @@ def hybrid_search(query, index, bm25, chunks, top_k=10):
     vec_results = vector_search(query, index, chunks, top_k)
     bm25_results = bm25_search(query, bm25, chunks, top_k)
 
-    # Fuse using RRF instead of naive concatenation
     fused = reciprocal_rank_fusion([vec_results, bm25_results])
 
     return fused[:top_k]

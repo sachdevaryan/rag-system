@@ -2,7 +2,7 @@ from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 import faiss
 import numpy as np
-from app.retrieval import build_bm25, get_embedding_model
+from app.retrieval import build_bm25, get_embeddings
 import os
 import json
 import pickle
@@ -13,13 +13,13 @@ os.makedirs(INDEX_DIR, exist_ok=True)
 
 
 def ingest_pdf(file_path):
-    """Load, split, embed, and index a PDF document."""
+    """Load, split, embed (via HF API), and index a PDF document."""
 
     # Load PDF
     loader = PyPDFLoader(file_path)
     documents = loader.load()
 
-    # Split into chunks with larger size for better context
+    # Split into chunks
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=800,
         chunk_overlap=200
@@ -39,8 +39,8 @@ def ingest_pdf(file_path):
 
     texts = [c["text"] for c in chunks]
 
-    # Create embeddings
-    embeddings = get_embedding_model().encode(texts)
+    # Create embeddings via HuggingFace Inference API (no local PyTorch)
+    embeddings = get_embeddings(texts)
     embeddings = np.array(embeddings).astype("float32")
 
     # Create FAISS index
@@ -63,14 +63,11 @@ def save_index(doc_name, index, chunks, bm25):
     doc_dir = os.path.join(INDEX_DIR, doc_name)
     os.makedirs(doc_dir, exist_ok=True)
 
-    # Save FAISS index
     faiss.write_index(index, os.path.join(doc_dir, "faiss.index"))
 
-    # Save chunks as JSON
     with open(os.path.join(doc_dir, "chunks.json"), "w", encoding="utf-8") as f:
         json.dump(chunks, f, ensure_ascii=False)
 
-    # Save BM25 with pickle
     with open(os.path.join(doc_dir, "bm25.pkl"), "wb") as f:
         pickle.dump(bm25, f)
 
@@ -82,14 +79,11 @@ def load_index(doc_name):
     if not os.path.exists(doc_dir):
         return None, None, None
 
-    # Load FAISS index
     index = faiss.read_index(os.path.join(doc_dir, "faiss.index"))
 
-    # Load chunks
     with open(os.path.join(doc_dir, "chunks.json"), "r", encoding="utf-8") as f:
         chunks = json.load(f)
 
-    # Load BM25
     with open(os.path.join(doc_dir, "bm25.pkl"), "rb") as f:
         bm25 = pickle.load(f)
 
@@ -97,7 +91,7 @@ def load_index(doc_name):
 
 
 def load_all_indices():
-    """Load all saved indices on startup. Returns a dict of doc_name -> (index, chunks, bm25)."""
+    """Load all saved indices on startup."""
     registry = {}
 
     if not os.path.exists(INDEX_DIR):
@@ -125,7 +119,6 @@ def delete_index(doc_name):
     if os.path.exists(doc_dir):
         shutil.rmtree(doc_dir)
 
-    # Also remove the PDF file
     pdf_path = os.path.join("data", doc_name)
     if os.path.exists(pdf_path):
         os.remove(pdf_path)
