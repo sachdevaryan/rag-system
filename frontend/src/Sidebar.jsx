@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import axios from "axios";
 
-const API_URL = "http://127.0.0.1:8000";
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
 export default function Sidebar({ documents, setDocuments, uploading, setUploading }) {
   const [dragOver, setDragOver] = useState(false);
