@@ -1,8 +1,13 @@
 from rank_bm25 import BM25Okapi
 import numpy as np
-from sentence_transformers import SentenceTransformer
+_embedding_model = None
 
-embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
+def get_embedding_model():
+    global _embedding_model
+    if _embedding_model is None:
+        from sentence_transformers import SentenceTransformer
+        _embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
+    return _embedding_model
 
 
 # -----------------------------
@@ -41,7 +46,7 @@ def bm25_search(query, bm25, chunks, top_k=10):
 # Vector search
 # -----------------------------
 def vector_search(query, index, chunks, top_k=10):
-    query_embedding = embedding_model.encode([query])
+    query_embedding = get_embedding_model().encode([query])
 
     distances, indices = index.search(
         np.array(query_embedding).astype("float32"),

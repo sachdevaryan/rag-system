@@ -1,6 +1,19 @@
+import os
+# Configure CPU thread limits to save memory in multi-core hosting systems (e.g. Render)
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
+os.environ["NUMEXPR_NUM_THREADS"] = "1"
+
+import torch
+# Restrict torch computation to a single thread and disable gradients
+torch.set_num_threads(1)
+torch.set_num_interop_threads(1)
+torch.set_grad_enabled(False)
+
 from fastapi import FastAPI, UploadFile, HTTPException
 from fastapi.responses import StreamingResponse
-import os
 import json
 from pydantic import BaseModel
 from typing import List, Optional

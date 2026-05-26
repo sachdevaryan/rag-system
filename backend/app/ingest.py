@@ -1,15 +1,11 @@
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from sentence_transformers import SentenceTransformer
 import faiss
 import numpy as np
-from app.retrieval import build_bm25
+from app.retrieval import build_bm25, get_embedding_model
 import os
 import json
 import pickle
-
-# Embedding model
-embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
 
 # Persistence directory
 INDEX_DIR = "data/indices"
@@ -44,7 +40,7 @@ def ingest_pdf(file_path):
     texts = [c["text"] for c in chunks]
 
     # Create embeddings
-    embeddings = embedding_model.encode(texts)
+    embeddings = get_embedding_model().encode(texts)
     embeddings = np.array(embeddings).astype("float32")
 
     # Create FAISS index
