@@ -20,7 +20,7 @@ ENV OMP_NUM_THREADS=1
 ENV ONNXRUNTIME_NUM_THREADS=1
 
 # Copy requirements and install
-COPY requirements.txt .
+COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Create the models directory
@@ -29,8 +29,8 @@ RUN mkdir -p models
 # Pre-cache the fastembed model during the Docker build phase
 RUN python -c "from fastembed import TextEmbedding; TextEmbedding(model_name='sentence-transformers/all-MiniLM-L6-v2', cache_dir='models')"
 
-# Copy the rest of the application code
-COPY . .
+# Copy the rest of the application code (from the backend folder)
+COPY backend/ ./
 
 # Hugging Face Spaces requires running as a non-root user (uid 1000)
 RUN useradd -m -u 1000 user
