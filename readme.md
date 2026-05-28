@@ -162,7 +162,7 @@ VITE_API_URL=https://your-backend.onrender.com
 1. Push repo to GitHub.
 2. Create a **Web Service** on [Render](https://render.com):
    - **Root Directory:** `backend`
-   - **Build Command:** `pip install -r requirements.txt`
+   - **Build Command:** `pip install -r requirements.txt && python -c "from fastembed import TextEmbedding; TextEmbedding(model_name='sentence-transformers/all-MiniLM-L6-v2', cache_dir='data/models')"`
    - **Start Command:** `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
 3. Add **Environment Variable:** `GROQ_API_KEY`
 4. Add a **Persistent Disk** (mount path `/app/data`) to keep indices across restarts.
