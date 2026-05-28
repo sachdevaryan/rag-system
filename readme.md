@@ -1,3 +1,12 @@
+---
+title: RAG Knowledge Base
+emoji: 🚀
+colorFrom: blue
+colorTo: red
+sdk: docker
+build_dir: backend
+---
+
 # 📁 Enterprise Document Search & Knowledge Base Workspace
 
 A high-performance, citation-backed **Retrieval-Augmented Generation (RAG)** platform designed for engineering teams and internal documentation hubs. Inspired by the clean, information-dense visual languages of **Notion, Linear, GitHub, and Confluence**, this platform enables teams to index PDFs, run hybrid semantic + keyword searches across deep technical documentation, and extract citation-backed syntheses.
