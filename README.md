@@ -5,6 +5,7 @@ colorFrom: blue
 colorTo: red
 sdk: docker
 build_dir: backend
+app_port: 7860
 ---
 
 # 📁 Enterprise Document Search & Knowledge Base Workspace
