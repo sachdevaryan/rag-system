@@ -6,6 +6,7 @@ os.environ["OPENBLAS_NUM_THREADS"] = "1"
 os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
 os.environ["NUMEXPR_NUM_THREADS"] = "1"
 os.environ["ONNXRUNTIME_NUM_THREADS"] = "1"
+os.environ["HF_HUB_OFFLINE"] = "1"
 
 from fastapi import FastAPI, UploadFile, HTTPException
 from fastapi.responses import StreamingResponse
