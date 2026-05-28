@@ -157,15 +157,20 @@ VITE_API_URL=https://your-backend.onrender.com
 
 ## 🚀 Production Deployment
 
-### Backend → Render
+### Backend → Hugging Face Spaces (Docker Space)
 
 1. Push repo to GitHub.
-2. Create a **Web Service** on [Render](https://render.com):
-   - **Root Directory:** `backend`
-   - **Build Command:** `pip install -r requirements.txt && python -c "from fastembed import TextEmbedding; TextEmbedding(model_name='sentence-transformers/all-MiniLM-L6-v2', cache_dir='models')"`
-   - **Start Command:** `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-3. Add **Environment Variable:** `GROQ_API_KEY`
-4. Add a **Persistent Disk** (mount path `/app/data`) to keep indices across restarts.
+2. Go to [Hugging Face Spaces](https://huggingface.co/spaces) and click **Create new Space**.
+3. Settings:
+   - **Space name:** `your-rag-backend`
+   - **License:** `mit` (or your choice)
+   - **Select the Space SDK:** `Docker` -> `Blank`
+   - **Space hardware:** `Free` (Provides 16GB RAM and 2 vCPUs)
+4. Under "Space settings", add your **Repository Secret**: `GROQ_API_KEY`
+5. Since your code is on GitHub, you can link it directly or push your code to the Hugging Face git remote. Ensure the `backend` folder contains the `Dockerfile`.
+   - **Note:** Because the Space starts from the root, ensure your Dockerfile is placed at the root or configure the Space to build from `backend/Dockerfile`. The provided Dockerfile assumes it's run from the `backend` directory.
+
+*(Alternative: You can simply copy the contents of your `backend` folder into the Hugging Face Space file editor if you don't want to use git).*
 
 ### Frontend → Vercel
 
