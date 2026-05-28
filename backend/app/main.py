@@ -1,4 +1,11 @@
 import os
+# Force 1 CPU thread for all multi-threaded libraries to minimize RAM usage on Render
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
+os.environ["NUMEXPR_NUM_THREADS"] = "1"
+os.environ["ONNXRUNTIME_NUM_THREADS"] = "1"
 
 from fastapi import FastAPI, UploadFile, HTTPException
 from fastapi.responses import StreamingResponse

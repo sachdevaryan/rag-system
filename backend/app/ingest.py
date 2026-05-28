@@ -43,7 +43,8 @@ def ingest_pdf(file_path):
     embeddings = get_embeddings(texts)
     embeddings = np.array(embeddings).astype("float32")
 
-    # Create FAISS index
+    # Create FAISS index (force 1 thread to save memory)
+    faiss.omp_set_num_threads(1)
     dimension = embeddings.shape[1]
     index = faiss.IndexFlatL2(dimension)
     index.add(embeddings)

@@ -14,7 +14,8 @@ def get_embedding_model():
         from fastembed import TextEmbedding
         _embedding_model = TextEmbedding(
             model_name="sentence-transformers/all-MiniLM-L6-v2",
-            cache_dir="data/models"
+            cache_dir="data/models",
+            threads=1
         )
     return _embedding_model
 
@@ -62,6 +63,8 @@ def bm25_search(query, bm25, chunks, top_k=10):
 # Vector search (via fastembed)
 # -----------------------------
 def vector_search(query, index, chunks, top_k=10):
+    import faiss
+    faiss.omp_set_num_threads(1)
     query_embedding = get_embeddings([query])
 
     distances, indices = index.search(
