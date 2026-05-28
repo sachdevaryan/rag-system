@@ -14,7 +14,7 @@ def get_embedding_model():
         from fastembed import TextEmbedding
         _embedding_model = TextEmbedding(
             model_name="sentence-transformers/all-MiniLM-L6-v2",
-            cache_dir="data/models",
+            cache_dir="models",
             threads=1
         )
     return _embedding_model

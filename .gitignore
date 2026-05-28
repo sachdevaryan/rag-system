@@ -17,6 +17,7 @@ backend/venv/
 
 # Uploaded files
 backend/data/
+backend/models/
 
 # Node
 node_modules/
