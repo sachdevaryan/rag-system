@@ -46,7 +46,7 @@ Provide a thorough, well-formatted answer:"""
     messages.append({"role": "user", "content": prompt})
 
     completion = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="deepseek-r1-distill-llama-70b",
         messages=messages,
         temperature=0.3,
         max_tokens=1024
@@ -80,7 +80,7 @@ Provide a thorough, well-formatted answer:"""
     messages.append({"role": "user", "content": prompt})
 
     stream = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="deepseek-r1-distill-llama-70b",
         messages=messages,
         temperature=0.3,
         max_tokens=1024,
