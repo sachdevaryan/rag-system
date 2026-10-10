@@ -54,7 +54,7 @@ graph TD
     subgraph Generation ["3. Generation & Streaming"]
         Top5 --> Prompt[Context-Enriched Prompt]
         Q --> Prompt
-        Prompt --> Groq[Groq SSE Stream\ndeepseek-r1-distill-llama-70b]
+        Prompt --> Groq[Groq SSE Stream\nopenai/gpt-oss-120b]
         Groq --> SSE[Server-Sent Events]
     end
 
@@ -78,7 +78,7 @@ graph TD
 | Vector Store | `faiss-cpu` — `IndexFlatL2`, persisted to disk |
 | Sparse Search | `rank-bm25` — BM25 Okapi, persisted to disk |
 | Fusion | Reciprocal Rank Fusion (RRF, k=60) |
-| Language Model | `Groq API` — `deepseek-r1-distill-llama-70b`, SSE streaming |
+| Language Model | `Groq API` — `openai/gpt-oss-120b`, SSE streaming |
 
 ### Frontend
 | Component | Technology |
