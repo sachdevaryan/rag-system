@@ -54,7 +54,6 @@ export default function App() {
     setSources([]);
     setSourcesOpen(false);
 
-    // Add to history
     const updatedHistory = [...history, userMessage];
 
     try {
@@ -72,7 +71,6 @@ export default function App() {
       let assistantContent = "";
       let buffer = "";
 
-      // Add empty assistant message that we'll fill via streaming
       setMessages((prev) => [
         ...prev,
         { role: "assistant", content: "" },
@@ -83,22 +81,16 @@ export default function App() {
         if (done) break;
 
         buffer += decoder.decode(value, { stream: true });
-
-        // Process complete SSE lines
         const lines = buffer.split("\n");
         buffer = lines.pop() || "";
 
         for (const line of lines) {
           if (!line.startsWith("data: ")) continue;
-
           try {
             const data = JSON.parse(line.slice(6));
-
             if (data.type === "sources") {
               setSources(data.sources);
-              if (data.sources.length > 0) {
-                setSourcesOpen(true);
-              }
+              if (data.sources.length > 0) setSourcesOpen(true);
             } else if (data.type === "token") {
               assistantContent += data.token;
               setMessages((prev) => {
@@ -109,8 +101,6 @@ export default function App() {
                 };
                 return updated;
               });
-            } else if (data.type === "done") {
-              // Streaming complete
             }
           } catch {
             // Skip malformed JSON
@@ -118,7 +108,6 @@ export default function App() {
         }
       }
 
-      // Update history with final assistant message
       setHistory([
         ...updatedHistory,
         { role: "assistant", content: assistantContent },
@@ -149,7 +138,7 @@ export default function App() {
           ...updatedHistory,
           { role: "assistant", content: res.data.answer },
         ]);
-      } catch (fallbackError) {
+      } catch {
         setMessages((prev) => {
           const updated = [...prev];
           updated[updated.length - 1] = {
@@ -182,9 +171,6 @@ export default function App() {
 
   return (
     <>
-      {/* Background gradient orbs */}
-      <div className="app-bg" />
-
       <div className="app-layout">
         {/* Sidebar */}
         <Sidebar
@@ -194,34 +180,45 @@ export default function App() {
           setUploading={setUploading}
         />
 
-        {/* Main Chat Panel */}
+        {/* Main workspace */}
         <main className="main-panel">
           {/* Header */}
           <div className="chat-header">
-            <h2>
-              <span className="workspace-header-bar"></span>
-              QUERY WORKSPACE
-            </h2>
+            <div className="chat-header-left">
+              <div className="workspace-indicator" aria-hidden="true" />
+              <h2>Query Workspace</h2>
+            </div>
+
             <div className="chat-header-actions">
               {sources.length > 0 && (
                 <button
-                  className={`header-btn ${sourcesOpen ? "active" : ""}`}
+                  className={`btn btn-ghost${sourcesOpen ? " active" : ""}`}
                   onClick={() => setSourcesOpen(!sourcesOpen)}
-                  style={sourcesOpen ? { borderColor: "var(--accent)", color: "var(--text-primary)", background: "var(--accent-glow)" } : {}}
+                  aria-pressed={sourcesOpen}
+                  aria-label={`${sourcesOpen ? "Hide" : "Show"} references`}
                 >
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: "inline-block", verticalAlign: "middle", marginRight: "4px" }}>
-                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
                   </svg>
                   References ({sources.length})
                 </button>
               )}
-              <button className="header-btn" onClick={clearChat}>
-                Reset
-              </button>
+
+              {messages.length > 0 && (
+                <button
+                  className="btn btn-ghost"
+                  onClick={clearChat}
+                  aria-label="Reset conversation"
+                >
+                  Reset
+                </button>
+              )}
+
               <button
-                className="header-btn primary-btn"
+                className="btn btn-primary"
                 onClick={() => setAboutOpen(true)}
+                aria-label="View documentation"
               >
                 Documentation
               </button>
@@ -229,19 +226,28 @@ export default function App() {
           </div>
 
           {/* Messages */}
-          <div className="chat-messages">
+          <div className="chat-messages" role="log" aria-live="polite" aria-label="Conversation">
             {messages.length === 0 ? (
               <div className="empty-chat">
-                <svg className="empty-chat-icon-svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: "8px" }}>
-                  <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
-                  <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
-                  <path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"></path>
-                </svg>
+                <div className="empty-chat-icon" aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <ellipse cx="12" cy="5" rx="9" ry="3" />
+                    <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+                    <path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3" />
+                  </svg>
+                </div>
                 <h3>Knowledge Retrieval Console</h3>
                 <p>
-                  Upload documents using the left indexing panel, then enter a search query below. 
-                  The engine will run unified hybrid vectors and keyword searches to extract verified reference passages.
+                  Upload documents using the left panel, then ask a question.
+                  The engine runs hybrid vector + keyword search to extract
+                  citation-backed answers from your documents.
                 </p>
+                <div className="empty-tips" aria-label="Example queries">
+                  <span className="empty-tip-tag">Summarize key findings</span>
+                  <span className="empty-tip-tag">Compare methodologies</span>
+                  <span className="empty-tip-tag">Extract data tables</span>
+                  <span className="empty-tip-tag">Find definitions</span>
+                </div>
               </div>
             ) : (
               <>
@@ -249,23 +255,22 @@ export default function App() {
                   <ChatMessage key={i} message={msg} />
                 ))}
 
-                {streaming &&
-                  messages[messages.length - 1]?.content === "" && (
-                    <div className="thinking">
-                      <div className="thinking-dots">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                      </div>
-                      Querying indexed workspace passages...
+                {streaming && messages[messages.length - 1]?.content === "" && (
+                  <div className="thinking" role="status" aria-label="Generating response">
+                    <div className="thinking-dots" aria-hidden="true">
+                      <span />
+                      <span />
+                      <span />
                     </div>
-                  )}
+                    Searching indexed passages…
+                  </div>
+                )}
               </>
             )}
             <div ref={chatEndRef} />
           </div>
 
-          {/* Input */}
+          {/* Query composer */}
           <div className="input-area">
             <div className="input-wrapper">
               <textarea
@@ -274,25 +279,38 @@ export default function App() {
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Enter research query or search document context..."
+                placeholder="Ask a question about your documents…"
                 rows={1}
                 disabled={streaming}
+                aria-label="Query input"
+                aria-disabled={streaming}
               />
               <button
                 className="send-btn"
                 onClick={askQuestion}
                 disabled={streaming || !question.trim()}
+                aria-label="Submit query"
               >
-                Search
+                {streaming ? (
+                  <div className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} />
+                ) : (
+                  <>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="22" y1="2" x2="11" y2="13" />
+                      <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                    </svg>
+                    Search
+                  </>
+                )}
               </button>
             </div>
             <div className="input-hint">
-              <kbd>Enter</kbd> to execute query · <kbd>Shift+Enter</kbd> for new line
+              <kbd>Enter</kbd> to search &nbsp;·&nbsp; <kbd>Shift+Enter</kbd> for new line
             </div>
           </div>
         </main>
 
-        {/* Sources Panel */}
+        {/* References panel */}
         {sourcesOpen && sources.length > 0 && (
           <SourcesPanel
             sources={sources}
@@ -305,7 +323,7 @@ export default function App() {
         )}
       </div>
 
-      {/* PDF Modal Viewer Overlay */}
+      {/* PDF viewer */}
       {selectedPdf && (
         <PdfModal
           file={selectedPdf}
@@ -317,31 +335,39 @@ export default function App() {
         />
       )}
 
-      {/* About Modal */}
+      {/* About / Documentation modal */}
       {aboutOpen && (
-        <div className="modal-overlay" onClick={() => setAboutOpen(false)}>
+        <div
+          className="modal-overlay"
+          onClick={() => setAboutOpen(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Documentation"
+        >
           <div
             className="modal-content"
             onClick={(e) => e.stopPropagation()}
           >
             <h2>Document Retrieval Architecture</h2>
             <p>
-              A high-precision document search and indexing engine that merges dense semantic search 
-              with sparse keyword search to retrieve grounded reference answers with page-level citations.
+              A high-precision document search engine that merges dense semantic
+              vectors with sparse keyword search to retrieve grounded,
+              citation-backed answers with page-level source references.
             </p>
             <ul className="modal-features">
-              <li>Dual-Engine Indexing (BM25 + FAISS Vector Search)</li>
+              <li>Dual-engine indexing — BM25 + FAISS vector search</li>
               <li>Reciprocal Rank Fusion (RRF) for smart result merging</li>
-              <li>Cross-Encoder Reranking (MS-MARCO Deep Relevance Scoring)</li>
-              <li>Precision generation via Llama 3.3 70B Engine</li>
-              <li>Asynchronous Server-Sent Events (SSE) token streaming</li>
+              <li>ONNX-optimised embeddings via fastembed (no PyTorch)</li>
+              <li>Generation via <code>openai/gpt-oss-120b</code> on Groq</li>
+              <li>Asynchronous SSE token streaming</li>
               <li>Multi-document persistence across server restarts</li>
-              <li>Interactive verified reference page focus</li>
-              <li>Session-based conversation context mapping</li>
+              <li>Interactive page-level citation references</li>
+              <li>Session-based conversation context</li>
             </ul>
             <button
               className="modal-close"
               onClick={() => setAboutOpen(false)}
+              aria-label="Close documentation"
             >
               Close
             </button>
